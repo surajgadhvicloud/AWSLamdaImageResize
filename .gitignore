@@ -1,0 +1,59 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# AWS SAM
+.aws-sam/
+samconfig.toml
+
+# Lambda Layer build artifacts
+layer/nodejs/
+layer/sharp-layer.zip
+
+# Environment files
+.env
+*.env
+deploy-config.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+dist/
+build/
+*.zip
+
+# Test files
+test-images/
+*.jpg
+*.jpeg
+*.png
+*.webp
+*.gif
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# AWS credentials (never commit)
+credentials
+config
+
+# Coverage
+coverage/
+.nyc_output/

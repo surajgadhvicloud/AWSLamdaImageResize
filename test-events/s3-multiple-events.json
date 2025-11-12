@@ -1,0 +1,49 @@
+{
+  "Records": [
+    {
+      "eventVersion": "2.1",
+      "eventSource": "aws:s3",
+      "awsRegion": "us-east-1",
+      "eventTime": "2024-01-01T00:00:00.000Z",
+      "eventName": "ObjectCreated:Put",
+      "s3": {
+        "bucket": {
+          "name": "image-resize-source-bucket"
+        },
+        "object": {
+          "key": "sample1.jpg"
+        }
+      }
+    },
+    {
+      "eventVersion": "2.1",
+      "eventSource": "aws:s3",
+      "awsRegion": "us-east-1",
+      "eventTime": "2024-01-01T00:00:01.000Z",
+      "eventName": "ObjectCreated:Put",
+      "s3": {
+        "bucket": {
+          "name": "image-resize-source-bucket"
+        },
+        "object": {
+          "key": "sample2.png"
+        }
+      }
+    },
+    {
+      "eventVersion": "2.1",
+      "eventSource": "aws:s3",
+      "awsRegion": "us-east-1",
+      "eventTime": "2024-01-01T00:00:02.000Z",
+      "eventName": "ObjectCreated:Put",
+      "s3": {
+        "bucket": {
+          "name": "image-resize-source-bucket"
+        },
+        "object": {
+          "key": "sample3.webp"
+        }
+      }
+    }
+  ]
+}

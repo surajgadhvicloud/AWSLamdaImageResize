@@ -1,0 +1,179 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Serverless Image Resizing Pipeline with Lambda, Lambda Layers, and S3 Event Triggers
+
+Parameters:
+  SourceBucketName:
+    Type: String
+    Description: Name of the S3 bucket for source (original) images
+    Default: image-resize-source-bucket
+  
+  DestinationBucketName:
+    Type: String
+    Description: Name of the S3 bucket for destination (resized) images
+    Default: image-resize-destination-bucket
+  
+  ResizeWidth:
+    Type: Number
+    Description: Target width for resized images (in pixels)
+    Default: 800
+  
+  ResizeHeight:
+    Type: Number
+    Description: Target height for resized images (in pixels)
+    Default: 600
+  
+  ImageQuality:
+    Type: Number
+    Description: Image quality for compression (1-100)
+    Default: 80
+    MinValue: 1
+    MaxValue: 100
+
+Resources:
+  # Source S3 Bucket for original images
+  SourceBucket:
+    Type: AWS::S3::Bucket
+    DependsOn: LambdaInvokePermission
+    Properties:
+      BucketName: !Sub '${SourceBucketName}-${AWS::AccountId}'
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: s3:ObjectCreated:*
+            Function: !GetAtt ImageResizeFunction.Arn
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: suffix
+                    Value: .jpg
+          - Event: s3:ObjectCreated:*
+            Function: !GetAtt ImageResizeFunction.Arn
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: suffix
+                    Value: .jpeg
+          - Event: s3:ObjectCreated:*
+            Function: !GetAtt ImageResizeFunction.Arn
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: suffix
+                    Value: .png
+          - Event: s3:ObjectCreated:*
+            Function: !GetAtt ImageResizeFunction.Arn
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: suffix
+                    Value: .webp
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: Purpose
+          Value: ImageResizingSource
+
+  # Destination S3 Bucket for resized images
+  DestinationBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${DestinationBucketName}-${AWS::AccountId}'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: Purpose
+          Value: ImageResizingDestination
+
+  # Lambda Layer for Sharp library
+  SharpLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: sharp-image-processing
+      Description: Sharp library for image processing in Lambda
+      ContentUri: ./layer/
+      CompatibleRuntimes:
+        - nodejs18.x
+        - nodejs16.x
+        - nodejs14.x
+      RetentionPolicy: Retain
+
+  # Lambda Function for image resizing
+  ImageResizeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: ImageResizeFunction
+      Description: Resize images uploaded to S3 using Sharp
+      Runtime: nodejs18.x
+      CodeUri: ./lambda/
+      Handler: index.handler
+      Timeout: 300
+      MemorySize: 1024
+      Layers:
+        - !Ref SharpLayer
+      Environment:
+        Variables:
+          DESTINATION_BUCKET: !Ref DestinationBucket
+          RESIZE_WIDTH: !Ref ResizeWidth
+          RESIZE_HEIGHT: !Ref ResizeHeight
+          IMAGE_QUALITY: !Ref ImageQuality
+      Policies:
+        - S3ReadPolicy:
+            BucketName: !Sub '${SourceBucketName}-${AWS::AccountId}'
+        - S3CrudPolicy:
+            BucketName: !Sub '${DestinationBucketName}-${AWS::AccountId}'
+      Tags:
+        Purpose: ImageResizing
+
+  # Permission for S3 to invoke Lambda
+  LambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref ImageResizeFunction
+      Action: lambda:InvokeFunction
+      Principal: s3.amazonaws.com
+      SourceAccount: !Ref AWS::AccountId
+      SourceArn: !Sub 'arn:aws:s3:::${SourceBucketName}-${AWS::AccountId}'
+
+  # CloudWatch Log Group for Lambda
+  ImageResizeFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${ImageResizeFunction}'
+      RetentionInDays: 7
+
+Outputs:
+  SourceBucketName:
+    Description: Name of the source S3 bucket
+    Value: !Ref SourceBucket
+    Export:
+      Name: ImageResizeSourceBucket
+
+  DestinationBucketName:
+    Description: Name of the destination S3 bucket
+    Value: !Ref DestinationBucket
+    Export:
+      Name: ImageResizeDestinationBucket
+
+  ImageResizeFunctionArn:
+    Description: ARN of the Image Resize Lambda Function
+    Value: !GetAtt ImageResizeFunction.Arn
+    Export:
+      Name: ImageResizeFunctionArn
+
+  SharpLayerArn:
+    Description: ARN of the Sharp Lambda Layer
+    Value: !Ref SharpLayer
+    Export:
+      Name: SharpLayerArn
+
+  CloudWatchLogGroup:
+    Description: CloudWatch Log Group for Lambda function
+    Value: !Ref ImageResizeFunctionLogGroup
+    Export:
+      Name: ImageResizeLogGroup

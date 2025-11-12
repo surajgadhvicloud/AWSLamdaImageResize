@@ -1,0 +1,23 @@
+# Example Configuration
+
+# Copy this file to deploy-config.env and customize for your deployment
+# Then run: source deploy-config.env && ./scripts/deploy.sh
+
+# Stack name (must be unique in your AWS account)
+export STACK_NAME="image-resize-stack"
+
+# AWS Region
+export AWS_REGION="us-east-1"
+
+# S3 bucket names (will be suffixed with AWS account ID to ensure uniqueness)
+export SOURCE_BUCKET_NAME="image-resize-source-bucket"
+export DESTINATION_BUCKET_NAME="image-resize-destination-bucket"
+
+# Image resize settings
+export RESIZE_WIDTH="800"
+export RESIZE_HEIGHT="600"
+export IMAGE_QUALITY="80"
+
+# Deployment bucket for SAM artifacts
+# Will be created if it doesn't exist
+export DEPLOYMENT_BUCKET="sam-deployment-bucket"
