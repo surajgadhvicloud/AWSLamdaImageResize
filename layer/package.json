@@ -1,0 +1,19 @@
+{
+  "name": "sharp-lambda-layer",
+  "version": "1.0.0",
+  "description": "Lambda Layer for Sharp image processing library",
+  "main": "index.js",
+  "scripts": {
+    "build": "npm install --arch=x64 --platform=linux sharp"
+  },
+  "keywords": [
+    "lambda",
+    "layer",
+    "sharp"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "sharp": "^0.32.0"
+  }
+}
